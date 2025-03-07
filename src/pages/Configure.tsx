@@ -5,6 +5,7 @@ import Header from '@/components/Header';
 import TimerConfig from '@/components/TimerConfig';
 import ContactConfig from '@/components/ContactConfig';
 import SmsVerification from '@/components/SmsVerification';
+import SleepScheduleConfig from '@/components/SleepScheduleConfig';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { ArrowRight } from 'lucide-react';
@@ -24,9 +25,22 @@ const Configure = () => {
     return localStorage.getItem('guardianContactPhone') || '';
   });
 
+  const [sleepTime, setSleepTime] = useState<string>(() => {
+    return localStorage.getItem('guardianSleepTime') || '22:00';
+  });
+
+  const [wakeTime, setWakeTime] = useState<string>(() => {
+    return localStorage.getItem('guardianWakeTime') || '07:00';
+  });
+
+  const [sleepEnabled, setSleepEnabled] = useState<boolean>(() => {
+    return localStorage.getItem('guardianSleepEnabled') === 'true';
+  });
+
   const [showVerification, setShowVerification] = useState(false);
   const [pendingTimer, setPendingTimer] = useState<number | null>(null);
   const [pendingContact, setPendingContact] = useState<{name: string, phone: string} | null>(null);
+  const [pendingSleep, setPendingSleep] = useState<{sleepTime: string, wakeTime: string, enabled: boolean} | null>(null);
   const [configVerified, setConfigVerified] = useState(false);
   
   const handleSaveTimer = (minutes: number) => {
@@ -49,6 +63,26 @@ const Configure = () => {
     setPendingContact({name, phone});
     setShowVerification(true);
   };
+
+  const handleSaveSleepSchedule = (sleepTime: string, wakeTime: string, enabled: boolean) => {
+    setPendingSleep({sleepTime, wakeTime, enabled});
+    
+    // Si le contact est déjà configuré, montrer la vérification
+    if (contactPhone) {
+      setShowVerification(true);
+    } else {
+      // Sinon, enregistrer temporairement et demander de configurer le contact
+      setSleepTime(sleepTime);
+      setWakeTime(wakeTime);
+      setSleepEnabled(enabled);
+      localStorage.setItem('guardianSleepTime', sleepTime);
+      localStorage.setItem('guardianWakeTime', wakeTime);
+      localStorage.setItem('guardianSleepEnabled', enabled.toString());
+      toast.info("Configurez un contact d'urgence pour finaliser", {
+        duration: 5000
+      });
+    }
+  };
   
   const handleVerificationSuccess = () => {
     // Enregistrer les configurations en attente
@@ -63,10 +97,20 @@ const Configure = () => {
       localStorage.setItem('guardianContactName', pendingContact.name);
       localStorage.setItem('guardianContactPhone', pendingContact.phone);
     }
+
+    if (pendingSleep) {
+      setSleepTime(pendingSleep.sleepTime);
+      setWakeTime(pendingSleep.wakeTime);
+      setSleepEnabled(pendingSleep.enabled);
+      localStorage.setItem('guardianSleepTime', pendingSleep.sleepTime);
+      localStorage.setItem('guardianWakeTime', pendingSleep.wakeTime);
+      localStorage.setItem('guardianSleepEnabled', pendingSleep.enabled.toString());
+    }
     
     setShowVerification(false);
     setPendingTimer(null);
     setPendingContact(null);
+    setPendingSleep(null);
     setConfigVerified(true);
     
     toast.success("Configuration validée avec succès", {
@@ -78,6 +122,7 @@ const Configure = () => {
     setShowVerification(false);
     setPendingTimer(null);
     setPendingContact(null);
+    setPendingSleep(null);
   };
   
   const handleStartMonitoring = () => {
@@ -129,16 +174,25 @@ const Configure = () => {
               onCancel={handleCancelVerification}
             />
           ) : (
-            <div className="grid md:grid-cols-2 gap-8">
-              <TimerConfig 
-                defaultValue={timerMinutes} 
-                onSave={handleSaveTimer} 
-              />
+            <div className="grid gap-8">
+              <div className="grid md:grid-cols-2 gap-8">
+                <TimerConfig 
+                  defaultValue={timerMinutes} 
+                  onSave={handleSaveTimer} 
+                />
+                
+                <ContactConfig 
+                  defaultName={contactName}
+                  defaultPhone={contactPhone}
+                  onSave={handleSaveContact}
+                />
+              </div>
               
-              <ContactConfig 
-                defaultName={contactName}
-                defaultPhone={contactPhone}
-                onSave={handleSaveContact}
+              <SleepScheduleConfig
+                defaultSleepTime={sleepTime}
+                defaultWakeTime={wakeTime}
+                defaultEnabled={sleepEnabled}
+                onSave={handleSaveSleepSchedule}
               />
             </div>
           )}
