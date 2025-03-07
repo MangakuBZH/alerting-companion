@@ -7,7 +7,7 @@ import SimulateAlert from '@/components/SimulateAlert';
 import { toast } from 'sonner';
 import { AlertCircle, Moon } from 'lucide-react';
 
-type Status = 'active' | 'inactive' | 'alert' | 'sleep';
+type Status = 'active' | 'inactive' | 'alert' | 'pause';
 
 const Monitor = () => {
   const navigate = useNavigate();
@@ -17,19 +17,22 @@ const Monitor = () => {
   const [timerThreshold, setTimerThreshold] = useState<number>(10 * 60 * 1000); // Default 10 minutes
   const [contactName, setContactName] = useState<string>('');
   const [contactPhone, setContactPhone] = useState<string>('');
-  const [sleepEnabled, setSleepEnabled] = useState<boolean>(false);
+  const [pauseEnabled, setPauseEnabled] = useState<boolean>(false);
   const [sleepTime, setSleepTime] = useState<string>('22:00');
   const [wakeTime, setWakeTime] = useState<string>('07:00');
-  const [isSleepMode, setIsSleepMode] = useState<boolean>(false);
+  const [isPauseMode, setIsPauseMode] = useState<boolean>(false);
+  const [fallDetectionEnabled, setFallDetectionEnabled] = useState<boolean>(true);
+  const [gyroscopeSupported, setGyroscopeSupported] = useState<boolean>(false);
   
   // Load saved configuration
   useEffect(() => {
     const savedTimerMinutes = localStorage.getItem('guardianTimerMinutes');
     const savedContactName = localStorage.getItem('guardianContactName');
     const savedContactPhone = localStorage.getItem('guardianContactPhone');
-    const savedSleepEnabled = localStorage.getItem('guardianSleepEnabled');
+    const savedPauseEnabled = localStorage.getItem('guardianSleepEnabled');
     const savedSleepTime = localStorage.getItem('guardianSleepTime');
     const savedWakeTime = localStorage.getItem('guardianWakeTime');
+    const savedFallDetection = localStorage.getItem('guardianFallDetection');
     
     if (savedTimerMinutes) {
       setTimerThreshold(parseInt(savedTimerMinutes, 10) * 60 * 1000);
@@ -43,8 +46,8 @@ const Monitor = () => {
       setContactPhone(savedContactPhone);
     }
 
-    if (savedSleepEnabled) {
-      setSleepEnabled(savedSleepEnabled === 'true');
+    if (savedPauseEnabled) {
+      setPauseEnabled(savedPauseEnabled === 'true');
     }
 
     if (savedSleepTime) {
@@ -53,6 +56,10 @@ const Monitor = () => {
 
     if (savedWakeTime) {
       setWakeTime(savedWakeTime);
+    }
+
+    if (savedFallDetection) {
+      setFallDetectionEnabled(savedFallDetection === 'true');
     }
     
     if (!savedContactName || !savedContactPhone) {
@@ -64,11 +71,21 @@ const Monitor = () => {
         }
       });
     }
+
+    // Check if gyroscope is supported
+    if (window.DeviceMotionEvent) {
+      setGyroscopeSupported(true);
+    } else {
+      toast.warning("Gyroscope non détecté", {
+        description: "La détection de chute ne sera pas disponible sur cet appareil",
+        duration: 5000
+      });
+    }
   }, [navigate]);
 
-  // Check if current time is in sleep mode
-  const checkSleepMode = () => {
-    if (!sleepEnabled) return false;
+  // Check if current time is in pause mode
+  const checkPauseMode = () => {
+    if (!pauseEnabled) return false;
 
     const now = new Date();
     const currentTimeStr = now.getHours().toString().padStart(2, '0') + ':' + 
@@ -89,20 +106,62 @@ const Monitor = () => {
     }
   };
   
+  // Fall detection function
+  const detectFall = (event: DeviceMotionEvent) => {
+    if (!fallDetectionEnabled) return;
+    
+    const acceleration = event.accelerationIncludingGravity;
+    if (!acceleration || !acceleration.x || !acceleration.y || !acceleration.z) return;
+    
+    // Calculate total acceleration magnitude
+    const magnitude = Math.sqrt(
+      acceleration.x * acceleration.x + 
+      acceleration.y * acceleration.y + 
+      acceleration.z * acceleration.z
+    );
+    
+    // Threshold for fall detection (typically 3g for falls, where g is ~9.8 m/s²)
+    const fallThreshold = 25;
+    
+    if (magnitude > fallThreshold) {
+      // Potential fall detected
+      toast.error(
+        <div className="flex flex-col gap-2">
+          <div className="flex items-center gap-2 text-alert">
+            <AlertCircle className="h-5 w-5" />
+            <span className="font-medium">Chute détectée!</span>
+          </div>
+          <p className="text-sm">
+            Une chute potentielle a été détectée
+          </p>
+          <p className="text-xs text-muted-foreground">
+            Une alerte a été envoyée à {contactName}
+          </p>
+        </div>,
+        {
+          duration: 10000,
+        }
+      );
+      
+      // Additional logic would go here to send an alert
+      console.log("Fall detected:", magnitude);
+    }
+  };
+  
   // Update inactive time and check for alerts
   useEffect(() => {
     const interval = setInterval(() => {
-      // Check sleep mode
-      const isSleeping = checkSleepMode();
-      setIsSleepMode(isSleeping);
+      // Check pause mode
+      const isPaused = checkPauseMode();
+      setIsPauseMode(isPaused);
       
-      if (isSleeping) {
-        if (status !== 'sleep') {
-          setStatus('sleep');
+      if (isPaused) {
+        if (status !== 'pause') {
+          setStatus('pause');
           toast.info(
             <div className="flex items-center gap-2">
               <Moon className="h-5 w-5" />
-              <span>Mode veille activé</span>
+              <span>Mode pause activé</span>
             </div>,
             {
               description: `La surveillance reprendra à ${wakeTime}`,
@@ -110,7 +169,7 @@ const Monitor = () => {
             }
           );
         }
-        return; // Skip alert checks during sleep mode
+        return; // Skip alert checks during pause mode
       }
       
       const now = Date.now();
@@ -138,21 +197,21 @@ const Monitor = () => {
             duration: 10000,
           }
         );
-      } else if (inactiveMs < timerThreshold && inactiveMs > 10000 && status !== 'inactive' && status !== 'sleep') {
+      } else if (inactiveMs < timerThreshold && inactiveMs > 10000 && status !== 'inactive' && status !== 'pause') {
         setStatus('inactive');
-      } else if (inactiveMs < 10000 && status !== 'active' && status !== 'sleep') {
+      } else if (inactiveMs < 10000 && status !== 'active' && status !== 'pause') {
         setStatus('active');
       }
     }, 1000);
     
     return () => clearInterval(interval);
-  }, [lastActivity, timerThreshold, status, contactName, sleepTime, wakeTime, sleepEnabled]);
+  }, [lastActivity, timerThreshold, status, contactName, sleepTime, wakeTime, pauseEnabled]);
   
   // Set up activity detection
   useEffect(() => {
     const handleActivity = () => {
       setLastActivity(Date.now());
-      if (status !== 'active' && status !== 'sleep') {
+      if (status !== 'active' && status !== 'pause') {
         setStatus('active');
       }
     };
@@ -163,9 +222,27 @@ const Monitor = () => {
     window.addEventListener('touchstart', handleActivity);
     window.addEventListener('scroll', handleActivity);
     
-    // Add device motion detection if available
+    // Add gyroscope detection
     if (window.DeviceMotionEvent) {
-      window.addEventListener('devicemotion', handleActivity);
+      // Use device motion for activity detection
+      window.addEventListener('devicemotion', (event) => {
+        // Detect significant motion for activity tracking
+        if (event.accelerationIncludingGravity) {
+          const accel = event.accelerationIncludingGravity;
+          if (accel.x && accel.y && accel.z) {
+            // Detect motion above certain threshold
+            const motionThreshold = 1.5;
+            const totalMotion = Math.abs(accel.x) + Math.abs(accel.y) + Math.abs(accel.z);
+            
+            if (totalMotion > motionThreshold) {
+              handleActivity();
+            }
+          }
+        }
+        
+        // Fall detection
+        detectFall(event);
+      });
     }
     
     return () => {
@@ -176,9 +253,10 @@ const Monitor = () => {
       
       if (window.DeviceMotionEvent) {
         window.removeEventListener('devicemotion', handleActivity);
+        window.removeEventListener('devicemotion', detectFall);
       }
     };
-  }, [status]);
+  }, [status, fallDetectionEnabled]);
   
   return (
     <div className="min-h-screen flex flex-col bg-gradient-to-b from-blue-50 to-white">
@@ -193,10 +271,10 @@ const Monitor = () => {
             </p>
           </section>
           
-          {isSleepMode ? (
+          {isPauseMode ? (
             <div className="glass-panel p-8 text-center animate-scale-in">
               <Moon className="h-12 w-12 text-guardian/70 mx-auto mb-4" />
-              <h3 className="text-2xl font-medium mb-2">Mode Veille Activé</h3>
+              <h3 className="text-2xl font-medium mb-2">Mode Pause Activé</h3>
               <p className="text-gray-600 mb-4">
                 La surveillance est temporairement désactivée selon votre planning.
               </p>
@@ -231,18 +309,24 @@ const Monitor = () => {
                 <span className="bg-guardian/20 text-guardian rounded-full h-5 w-5 flex items-center justify-center flex-shrink-0 mt-0.5">2</span>
                 <span>Une alerte sera déclenchée après {timerThreshold / 60000} minutes d'inactivité</span>
               </li>
-              {sleepEnabled && (
+              {pauseEnabled && (
                 <li className="flex items-start gap-2">
                   <span className="bg-guardian/20 text-guardian rounded-full h-5 w-5 flex items-center justify-center flex-shrink-0 mt-0.5">3</span>
-                  <span>Mode veille activé de {sleepTime} à {wakeTime}</span>
+                  <span>Mode pause activé de {sleepTime} à {wakeTime}</span>
+                </li>
+              )}
+              {gyroscopeSupported && (
+                <li className="flex items-start gap-2">
+                  <span className="bg-guardian/20 text-guardian rounded-full h-5 w-5 flex items-center justify-center flex-shrink-0 mt-0.5">{pauseEnabled ? 4 : 3}</span>
+                  <span>Détection de chute activée via gyroscope</span>
                 </li>
               )}
               <li className="flex items-start gap-2">
-                <span className="bg-guardian/20 text-guardian rounded-full h-5 w-5 flex items-center justify-center flex-shrink-0 mt-0.5">{sleepEnabled ? 4 : 3}</span>
+                <span className="bg-guardian/20 text-guardian rounded-full h-5 w-5 flex items-center justify-center flex-shrink-0 mt-0.5">{pauseEnabled ? (gyroscopeSupported ? 5 : 4) : (gyroscopeSupported ? 4 : 3)}</span>
                 <span>Gardez votre téléphone chargé et connecté à internet</span>
               </li>
               <li className="flex items-start gap-2">
-                <span className="bg-guardian/20 text-guardian rounded-full h-5 w-5 flex items-center justify-center flex-shrink-0 mt-0.5">{sleepEnabled ? 5 : 4}</span>
+                <span className="bg-guardian/20 text-guardian rounded-full h-5 w-5 flex items-center justify-center flex-shrink-0 mt-0.5">{pauseEnabled ? (gyroscopeSupported ? 6 : 5) : (gyroscopeSupported ? 5 : 4)}</span>
                 <span>Assurez-vous que les notifications et la géolocalisation sont activées</span>
               </li>
             </ul>

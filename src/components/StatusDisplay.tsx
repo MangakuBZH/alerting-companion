@@ -3,7 +3,7 @@ import React, { useEffect, useState } from 'react';
 import { cn } from '@/lib/utils';
 import { AlertCircle, MapPin, Timer } from 'lucide-react';
 
-type Status = 'active' | 'inactive' | 'alert';
+type Status = 'active' | 'inactive' | 'alert' | 'pause';
 
 interface StatusDisplayProps {
   status: Status;
@@ -54,6 +54,7 @@ const StatusDisplay: React.FC<StatusDisplayProps> = ({
       case 'active': return 'status-active';
       case 'inactive': return 'status-inactive';
       case 'alert': return 'status-alert';
+      case 'pause': return 'status-pause';
     }
   };
   
@@ -62,6 +63,7 @@ const StatusDisplay: React.FC<StatusDisplayProps> = ({
       case 'active': return 'Activité détectée';
       case 'inactive': return 'Inactif';
       case 'alert': return 'Alerte!';
+      case 'pause': return 'En pause';
     }
   };
   

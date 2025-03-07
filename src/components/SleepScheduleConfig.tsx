@@ -32,12 +32,12 @@ const SleepScheduleConfig: React.FC<SleepScheduleConfigProps> = ({
     <div className="glass-panel p-6 animate-scale-in">
       <div className="flex items-center mb-4">
         <Clock className="h-6 w-6 text-guardian mr-2" />
-        <h3 className="text-xl font-medium text-guardian-dark">Mode Veille</h3>
+        <h3 className="text-xl font-medium text-guardian-dark">Mode Pause</h3>
       </div>
       
       <form onSubmit={handleSubmit}>
         <div className="mb-4 flex items-center justify-between">
-          <Label htmlFor="sleep-schedule-enabled" className="flex-1">Activer le mode veille</Label>
+          <Label htmlFor="sleep-schedule-enabled" className="flex-1">Activer le mode pause</Label>
           <Switch 
             id="sleep-schedule-enabled" 
             checked={enabled}
@@ -47,7 +47,7 @@ const SleepScheduleConfig: React.FC<SleepScheduleConfigProps> = ({
         
         <div className="space-y-4">
           <div>
-            <Label htmlFor="sleep-time" className="block mb-2">Heure de début (coucher)</Label>
+            <Label htmlFor="sleep-time" className="block mb-2">Heure de début (pause)</Label>
             <Input
               id="sleep-time"
               type="time"
@@ -59,7 +59,7 @@ const SleepScheduleConfig: React.FC<SleepScheduleConfigProps> = ({
           </div>
           
           <div>
-            <Label htmlFor="wake-time" className="block mb-2">Heure de fin (réveil)</Label>
+            <Label htmlFor="wake-time" className="block mb-2">Heure de fin (reprise)</Label>
             <Input
               id="wake-time"
               type="time"
@@ -80,7 +80,7 @@ const SleepScheduleConfig: React.FC<SleepScheduleConfigProps> = ({
       </form>
       
       <div className="mt-4 text-xs text-gray-500">
-        <p>Pendant les heures de veille, la surveillance est désactivée.</p>
+        <p>Pendant les heures de pause, la surveillance est désactivée.</p>
         <p>Idéal pour la nuit ou les périodes où vous n'avez pas besoin d'être surveillé.</p>
       </div>
     </div>
