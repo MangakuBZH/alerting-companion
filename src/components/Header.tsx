@@ -14,7 +14,7 @@ const Header: React.FC = () => {
             <div className="h-10 w-10 bg-guardian rounded-full flex items-center justify-center">
               <div className="h-6 w-6 bg-white/90 rounded-full" />
             </div>
-            <span className="text-xl font-semibold text-guardian">Gardien</span>
+            <span className="text-xl font-semibold text-guardian">Ange Gardien Live</span>
           </Link>
 
           <nav className="flex gap-6">

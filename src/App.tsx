@@ -9,6 +9,9 @@ import Configure from "./pages/Configure";
 import Monitor from "./pages/Monitor";
 import NotFound from "./pages/NotFound";
 
+// Titre de l'application
+document.title = "Ange Gardien Live";
+
 const queryClient = new QueryClient();
 
 const App = () => (

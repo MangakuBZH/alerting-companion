@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import Header from '@/components/Header';
 import TimerConfig from '@/components/TimerConfig';
 import ContactConfig from '@/components/ContactConfig';
+import SmsVerification from '@/components/SmsVerification';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { ArrowRight } from 'lucide-react';
@@ -22,18 +23,61 @@ const Configure = () => {
   const [contactPhone, setContactPhone] = useState<string>(() => {
     return localStorage.getItem('guardianContactPhone') || '';
   });
+
+  const [showVerification, setShowVerification] = useState(false);
+  const [pendingTimer, setPendingTimer] = useState<number | null>(null);
+  const [pendingContact, setPendingContact] = useState<{name: string, phone: string} | null>(null);
+  const [configVerified, setConfigVerified] = useState(false);
   
   const handleSaveTimer = (minutes: number) => {
-    setTimerMinutes(minutes);
-    localStorage.setItem('guardianTimerMinutes', minutes.toString());
-    toast.success(`Délai d'inactivité défini à ${minutes} minutes`);
+    setPendingTimer(minutes);
+    
+    // Si le contact est déjà configuré, montrer la vérification
+    if (contactPhone) {
+      setShowVerification(true);
+    } else {
+      // Sinon, enregistrer temporairement et demander de configurer le contact
+      setTimerMinutes(minutes);
+      localStorage.setItem('guardianTimerMinutes', minutes.toString());
+      toast.info("Configurez un contact d'urgence pour finaliser", {
+        duration: 5000
+      });
+    }
   };
   
   const handleSaveContact = (name: string, phone: string) => {
-    setContactName(name);
-    setContactPhone(phone);
-    localStorage.setItem('guardianContactName', name);
-    localStorage.setItem('guardianContactPhone', phone);
+    setPendingContact({name, phone});
+    setShowVerification(true);
+  };
+  
+  const handleVerificationSuccess = () => {
+    // Enregistrer les configurations en attente
+    if (pendingTimer !== null) {
+      setTimerMinutes(pendingTimer);
+      localStorage.setItem('guardianTimerMinutes', pendingTimer.toString());
+    }
+    
+    if (pendingContact) {
+      setContactName(pendingContact.name);
+      setContactPhone(pendingContact.phone);
+      localStorage.setItem('guardianContactName', pendingContact.name);
+      localStorage.setItem('guardianContactPhone', pendingContact.phone);
+    }
+    
+    setShowVerification(false);
+    setPendingTimer(null);
+    setPendingContact(null);
+    setConfigVerified(true);
+    
+    toast.success("Configuration validée avec succès", {
+      description: "Vous pouvez maintenant démarrer la surveillance"
+    });
+  };
+  
+  const handleCancelVerification = () => {
+    setShowVerification(false);
+    setPendingTimer(null);
+    setPendingContact(null);
   };
   
   const handleStartMonitoring = () => {
@@ -42,8 +86,28 @@ const Configure = () => {
       return;
     }
     
+    if (!configVerified && !localStorage.getItem('configVerified')) {
+      toast.error("Veuillez valider la configuration par SMS");
+      return;
+    }
+    
     navigate('/monitor');
   };
+
+  // Stocker l'état de vérification
+  useEffect(() => {
+    if (configVerified) {
+      localStorage.setItem('configVerified', 'true');
+    }
+  }, [configVerified]);
+
+  // Charger l'état de vérification
+  useEffect(() => {
+    const verified = localStorage.getItem('configVerified');
+    if (verified === 'true') {
+      setConfigVerified(true);
+    }
+  }, []);
   
   return (
     <div className="min-h-screen flex flex-col bg-gradient-to-b from-blue-50 to-white">
@@ -58,23 +122,32 @@ const Configure = () => {
             </p>
           </section>
           
-          <div className="grid md:grid-cols-2 gap-8">
-            <TimerConfig 
-              defaultValue={timerMinutes} 
-              onSave={handleSaveTimer} 
+          {showVerification ? (
+            <SmsVerification 
+              phoneNumber={pendingContact?.phone || contactPhone}
+              onVerify={handleVerificationSuccess}
+              onCancel={handleCancelVerification}
             />
-            
-            <ContactConfig 
-              defaultName={contactName}
-              defaultPhone={contactPhone}
-              onSave={handleSaveContact}
-            />
-          </div>
+          ) : (
+            <div className="grid md:grid-cols-2 gap-8">
+              <TimerConfig 
+                defaultValue={timerMinutes} 
+                onSave={handleSaveTimer} 
+              />
+              
+              <ContactConfig 
+                defaultName={contactName}
+                defaultPhone={contactPhone}
+                onSave={handleSaveContact}
+              />
+            </div>
+          )}
           
           <div className="flex justify-center mt-8">
             <Button
               className="glass-button"
               onClick={handleStartMonitoring}
+              disabled={!configVerified && !localStorage.getItem('configVerified')}
             >
               <span>Commencer la surveillance</span>
               <ArrowRight className="h-4 w-4 ml-2" />
