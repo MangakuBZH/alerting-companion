@@ -4,9 +4,11 @@ import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import Header from '@/components/Header';
 import { AlertCircle, ArrowRight, Timer, Phone, Shield, PersonStanding, Heart } from 'lucide-react';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 const Index = () => {
   const [loading, setLoading] = useState(true);
+  const { t } = useLanguage();
 
   useEffect(() => {
     // Simulate loading
@@ -38,31 +40,31 @@ const Index = () => {
       <main className="flex-1 container max-w-4xl mx-auto px-4 py-12">
         <div className="page-transition space-y-12">
           <section className="text-center space-y-4 mb-12">
-            <h1 className="text-5xl font-bold text-guardian-dark">Ange Gardien Live</h1>
+            <h1 className="text-5xl font-bold text-guardian-dark">{t('app.name')}</h1>
             <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-              Application de protection des personnes par détection d'inactivité et de chute
+              {t('app.tagline')}
             </p>
           </section>
           
-          {/* New Introduction Section */}
+          {/* Introduction Section */}
           <div className="glass-card p-8 md:col-span-2 animate-slide-up">
             <div className="flex items-start gap-4">
               <div className="h-12 w-12 bg-guardian/10 rounded-full flex-shrink-0 flex items-center justify-center">
                 <Shield className="h-6 w-6 text-guardian" />
               </div>
               <div>
-                <h3 className="text-xl font-medium mb-3">Votre protection personnelle</h3>
+                <h3 className="text-xl font-medium mb-3">{t('home.protection.title')}</h3>
                 <p className="text-gray-600 mb-4">
-                  Ange Gardien Live est une application conçue pour assurer votre sécurité grâce à trois fonctionnalités essentielles :
+                  {t('home.protection.description')}
                 </p>
                 <ul className="space-y-3 list-disc list-inside text-gray-600 mb-6">
-                  <li><span className="font-medium">Détection de chute</span> - Utilise le gyroscope de votre appareil pour identifier les mouvements brusques pouvant indiquer une chute ou un accident</li>
-                  <li><span className="font-medium">Surveillance d'inactivité</span> - Détecte l'absence d'interaction avec votre appareil pendant une durée définie</li>
-                  <li><span className="font-medium">Alerte automatique</span> - Envoie votre position GPS et les informations d'alerte à votre contact d'urgence</li>
+                  <li>{t('home.protection.feature1')}</li>
+                  <li>{t('home.protection.feature2')}</li>
+                  <li>{t('home.protection.feature3')}</li>
                 </ul>
                 <Link to="/configure">
                   <Button className="glass-button">
-                    <span>Configurer l'application</span>
+                    <span>{t('home.configure.app')}</span>
                     <ArrowRight className="h-4 w-4 ml-2" />
                   </Button>
                 </Link>
@@ -75,9 +77,9 @@ const Index = () => {
               <div className="h-12 w-12 bg-guardian/10 rounded-full flex items-center justify-center mb-6">
                 <PersonStanding className="h-6 w-6 text-guardian" />
               </div>
-              <h3 className="text-xl font-medium mb-3">Détection de chute</h3>
+              <h3 className="text-xl font-medium mb-3">{t('home.falldetection.title')}</h3>
               <p className="text-gray-600">
-                Grâce au gyroscope, l'application détecte automatiquement les mouvements brusques pouvant indiquer une chute ou un accident.
+                {t('home.falldetection.description')}
               </p>
             </div>
             
@@ -85,9 +87,9 @@ const Index = () => {
               <div className="h-12 w-12 bg-guardian/10 rounded-full flex items-center justify-center mb-6">
                 <Timer className="h-6 w-6 text-guardian" />
               </div>
-              <h3 className="text-xl font-medium mb-3">Détection d'inactivité</h3>
+              <h3 className="text-xl font-medium mb-3">{t('home.inactivity.title')}</h3>
               <p className="text-gray-600">
-                Ange Gardien surveille l'activité de votre appareil et déclenche une alerte en cas d'inactivité prolongée.
+                {t('home.inactivity.description')}
               </p>
             </div>
             
@@ -95,9 +97,9 @@ const Index = () => {
               <div className="h-12 w-12 bg-guardian/10 rounded-full flex items-center justify-center mb-6">
                 <Phone className="h-6 w-6 text-guardian" />
               </div>
-              <h3 className="text-xl font-medium mb-3">Contact d'urgence</h3>
+              <h3 className="text-xl font-medium mb-3">{t('home.emergency.title')}</h3>
               <p className="text-gray-600">
-                Définissez un contact qui recevra automatiquement vos informations d'alerte et votre position GPS.
+                {t('home.emergency.description')}
               </p>
             </div>
             
@@ -107,17 +109,17 @@ const Index = () => {
                   <AlertCircle className="h-6 w-6 text-guardian" />
                 </div>
                 <div>
-                  <h3 className="text-xl font-medium mb-3">Comment ça fonctionne</h3>
+                  <h3 className="text-xl font-medium mb-3">{t('home.how.title')}</h3>
                   <ol className="space-y-4 text-gray-600 list-decimal list-inside mb-6">
-                    <li>Configurez une durée d'inactivité, une détection de chute et un contact d'urgence</li>
-                    <li>Ange Gardien surveille discrètement l'activité et les mouvements de votre appareil</li>
-                    <li>Si une chute est détectée ou si aucune activité n'est enregistrée pendant la durée définie, une alerte est envoyée</li>
-                    <li>Votre contact reçoit l'alerte avec votre position GPS actuelle</li>
-                    <li>Vous pouvez configurer des heures de pause (par exemple la nuit) où la surveillance est désactivée</li>
+                    <li>{t('home.how.step1')}</li>
+                    <li>{t('home.how.step2')}</li>
+                    <li>{t('home.how.step3')}</li>
+                    <li>{t('home.how.step4')}</li>
+                    <li>{t('home.how.step5')}</li>
                   </ol>
                   <Link to="/monitor">
                     <Button className="glass-button">
-                      <span>Commencer la surveillance</span>
+                      <span>{t('home.monitoring.start')}</span>
                       <ArrowRight className="h-4 w-4 ml-2" />
                     </Button>
                   </Link>
@@ -133,15 +135,14 @@ const Index = () => {
                 <Heart className="h-6 w-6 text-guardian" />
               </div>
               <div>
-                <h3 className="text-xl font-medium mb-3">Soutenez notre mission</h3>
+                <h3 className="text-xl font-medium mb-3">{t('home.donation.title')}</h3>
                 <p className="text-gray-600 mb-6">
-                  Ange Gardien Live est un projet développé avec passion pour assurer la sécurité des personnes vulnérables. 
-                  Votre soutien nous permet de continuer à améliorer l'application et à la maintenir accessible à tous.
+                  {t('home.donation.description')}
                 </p>
                 <a href="https://donate.angegardien.live" target="_blank" rel="noopener noreferrer">
                   <Button className="glass-button bg-guardian-light hover:bg-guardian">
                     <Heart className="h-4 w-4 mr-2" />
-                    <span>Faire un don</span>
+                    <span>{t('home.donation.button')}</span>
                   </Button>
                 </a>
               </div>
@@ -151,7 +152,7 @@ const Index = () => {
       </main>
       
       <footer className="py-6 text-center text-sm text-gray-500">
-        <p>Application Ange Gardien Live &copy; {new Date().getFullYear()}</p>
+        <p>{t('footer.copyright')} &copy; {new Date().getFullYear()}</p>
       </footer>
     </div>
   );
