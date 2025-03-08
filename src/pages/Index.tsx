@@ -3,7 +3,7 @@ import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import Header from '@/components/Header';
-import { AlertCircle, ArrowRight, Timer, Phone, Shield, PersonStanding } from 'lucide-react';
+import { AlertCircle, ArrowRight, Timer, Phone, Shield, PersonStanding, Heart } from 'lucide-react';
 
 const Index = () => {
   const [loading, setLoading] = useState(true);
@@ -76,15 +76,9 @@ const Index = () => {
                 <PersonStanding className="h-6 w-6 text-guardian" />
               </div>
               <h3 className="text-xl font-medium mb-3">Détection de chute</h3>
-              <p className="text-gray-600 mb-6">
+              <p className="text-gray-600">
                 Grâce au gyroscope, l'application détecte automatiquement les mouvements brusques pouvant indiquer une chute ou un accident.
               </p>
-              <Link to="/configure">
-                <Button variant="link" className="text-guardian p-0 flex items-center gap-1 hover:gap-2 transition-all">
-                  <span>Configurer la détection</span>
-                  <ArrowRight className="h-4 w-4" />
-                </Button>
-              </Link>
             </div>
             
             <div className="glass-card p-8 animate-slide-up" style={{ animationDelay: '200ms' }}>
@@ -92,15 +86,9 @@ const Index = () => {
                 <Timer className="h-6 w-6 text-guardian" />
               </div>
               <h3 className="text-xl font-medium mb-3">Détection d'inactivité</h3>
-              <p className="text-gray-600 mb-6">
+              <p className="text-gray-600">
                 Ange Gardien surveille l'activité de votre appareil et déclenche une alerte en cas d'inactivité prolongée.
               </p>
-              <Link to="/configure">
-                <Button variant="link" className="text-guardian p-0 flex items-center gap-1 hover:gap-2 transition-all">
-                  <span>Configurer le minuteur</span>
-                  <ArrowRight className="h-4 w-4" />
-                </Button>
-              </Link>
             </div>
             
             <div className="glass-card p-8 animate-slide-up" style={{ animationDelay: '300ms' }}>
@@ -108,15 +96,9 @@ const Index = () => {
                 <Phone className="h-6 w-6 text-guardian" />
               </div>
               <h3 className="text-xl font-medium mb-3">Contact d'urgence</h3>
-              <p className="text-gray-600 mb-6">
+              <p className="text-gray-600">
                 Définissez un contact qui recevra automatiquement vos informations d'alerte et votre position GPS.
               </p>
-              <Link to="/configure">
-                <Button variant="link" className="text-guardian p-0 flex items-center gap-1 hover:gap-2 transition-all">
-                  <span>Ajouter un contact</span>
-                  <ArrowRight className="h-4 w-4" />
-                </Button>
-              </Link>
             </div>
             
             <div className="glass-card p-8 md:col-span-3 animate-slide-up" style={{ animationDelay: '400ms' }}>
@@ -140,6 +122,28 @@ const Index = () => {
                     </Button>
                   </Link>
                 </div>
+              </div>
+            </div>
+          </div>
+          
+          {/* Donation Section */}
+          <div className="glass-card p-8 animate-slide-up" style={{ animationDelay: '500ms' }}>
+            <div className="flex items-start gap-4">
+              <div className="h-12 w-12 bg-guardian/10 rounded-full flex-shrink-0 flex items-center justify-center">
+                <Heart className="h-6 w-6 text-guardian" />
+              </div>
+              <div>
+                <h3 className="text-xl font-medium mb-3">Soutenez notre mission</h3>
+                <p className="text-gray-600 mb-6">
+                  Ange Gardien Live est un projet développé avec passion pour assurer la sécurité des personnes vulnérables. 
+                  Votre soutien nous permet de continuer à améliorer l'application et à la maintenir accessible à tous.
+                </p>
+                <a href="https://donate.angegardien.live" target="_blank" rel="noopener noreferrer">
+                  <Button className="glass-button bg-guardian-light hover:bg-guardian">
+                    <Heart className="h-4 w-4 mr-2" />
+                    <span>Faire un don</span>
+                  </Button>
+                </a>
               </div>
             </div>
           </div>
